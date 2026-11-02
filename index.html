@@ -148,6 +148,30 @@ dialog.vid::backdrop{background:rgba(10,4,30,.8)}
 .vid-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .vid-foot{padding:12px 20px 16px;font-size:14px}
 .vid-foot a{color:var(--mango);font-weight:700}
+.spot{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .25s}
+.spot.on{opacity:1}
+.spot-ring{position:absolute;border:3px dashed var(--mango);border-radius:50%;pointer-events:none;opacity:0;transition:opacity .25s;animation:spin 14s linear infinite}
+.spot-ring.on{opacity:1}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ctx{position:fixed;z-index:40;width:min(340px,calc(100vw - 24px));background:#fff;color:var(--indigo);border-radius:18px;box-shadow:0 14px 40px rgba(10,4,30,.45);border:3px solid var(--indigo);overflow:hidden;animation:rise .2s ease-out}
+.ctx[hidden]{display:none}
+.ctx-head{display:flex;gap:10px;align-items:flex-start;padding:12px 12px 8px}
+.ctx-num{width:34px;height:34px;border-radius:17px;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0}
+.ctx-head strong{display:block;font-size:17px;line-height:1.2}
+.ctx-meta{font-size:13px;color:#4B3F66}
+.ctx-head .icon-btn{width:36px;height:36px;margin-left:auto;flex-shrink:0}
+.ctx-text{margin:0;padding:0 14px 10px;font-size:15px;line-height:1.45}
+.ctx-media{padding:0 14px 10px}
+.ctx-thumb{position:relative;display:block;width:100%;aspect-ratio:16/9;border:none;border-radius:12px;background-color:#000;background-size:cover;background-position:center;cursor:pointer}
+.ctx-thumb span{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:29px;background:var(--hibiscus);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.ctx-thumb em{position:absolute;left:8px;bottom:8px;font-style:normal;font-size:13px;font-weight:700;background:rgba(10,4,30,.8);color:#fff;padding:3px 8px;border-radius:8px}
+.ctx-video{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
+.ctx-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.ctx-actions{display:flex;gap:8px;padding:0 14px 14px}
+.ctx-actions button{flex:1;min-height:44px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.ctx-listen{background:var(--indigo);color:#fff;border:none}
+.ctx-listen[aria-pressed="true"]{background:var(--hibiscus)}
+.ctx-more{background:#fff;color:var(--indigo);border:1.5px solid #CDBFE6}
 @media (max-width:980px){.panels{grid-template-columns:1fr}}
 @media (max-width:560px){.brand h1{font-size:24px}.top,.lensbar,.timeline{padding-left:14px;padding-right:14px}.panels{padding:16px 14px 22px}.walk{margin-left:0}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.smoke,.spark{opacity:0}}
@@ -195,6 +219,8 @@ dialog.vid::backdrop{background:rgba(10,4,30,.8)}
         <div class="glow" style="left:1330px;top:300px;width:90px;height:90px;background:radial-gradient(circle,rgba(255,190,90,.75),rgba(255,190,90,0))"></div>
         <div class="glow" style="left:1340px;top:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(255,236,170,.8),rgba(255,236,170,0));animation-duration:6s"></div>
       </div>
+      <div class="spot" id="spot" aria-hidden="true"></div>
+      <div class="spot-ring" id="spotRing" aria-hidden="true"></div>
       <div id="pins"></div>
     </div>
   </section>
@@ -270,6 +296,20 @@ dialog.vid::backdrop{background:rgba(10,4,30,.8)}
       <button class="primary" id="begin">Begin the walk</button>
       <button class="secondary" id="explore">Explore on my own</button>
     </div>
+  </div>
+</div>
+
+<div class="ctx" id="ctx" role="dialog" aria-labelledby="ctxTitle" hidden>
+  <div class="ctx-head">
+    <span class="ctx-num" id="ctxNum"></span>
+    <div><strong class="display" id="ctxTitle"></strong><span class="ctx-meta" id="ctxMeta"></span></div>
+    <button class="icon-btn" id="ctxClose" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+  </div>
+  <p class="ctx-text" id="ctxText"></p>
+  <div class="ctx-media" id="ctxMedia"></div>
+  <div class="ctx-actions">
+    <button class="ctx-listen" id="ctxListen" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"></path></svg><span>Listen</span></button>
+    <button class="ctx-more" id="ctxMore">Read the full story</button>
   </div>
 </div>
 
@@ -505,6 +545,88 @@ function openVideo(url, title) {
   $('vid').showModal();
 }
 function closeVideo() { $('vidFrame').innerHTML = ''; if ($('vid').open) $('vid').close(); }
+const TEASERS = {
+  first: 'Where the story begins: the Taíno, Kalinago and other First Peoples, who farmed, fished and carved these islands long before 1492.',
+  atlantic: 'Ships under rival European flags carried captive Africans in and sugar out for more than three centuries.',
+  maroon: 'Free communities in the hills, built by Africans who escaped slavery and fought to stay free.',
+  mill: 'Where wind and muscle crushed the cane that made a few people very rich.',
+  works: 'Cane juice was boiled into sugar here, day and night in crop time. Hard, dangerous work.',
+  great: 'The owner’s house, where the estate’s records were written by the people who held power.',
+  quarters: 'Small homes where enslaved families kept their languages, faith and music alive.',
+  grounds: 'Plots where enslaved people grew their own food and built the first markets.',
+  proclaim: '1834 and 1838: freedom read aloud. Notice who holds the paper, and who listens.',
+  village: 'After freedom, people built villages, churches and schools of their own.',
+  arrivals: 'From 1838, indentured workers came from India, China and Portugal, bringing new faiths, food and music.',
+  market: 'Higglers and market women run an economy with roots in the provision grounds.',
+  reading: 'The school and library, where you learn to read the word, the world, and the machine.',
+  studio: 'Reggae, calypso, soca, kompa and dancehall: Caribbean history told in music.',
+  ground: 'Bauxite, oil and gas brought jobs and money, and also moved communities and changed the land.',
+  port: 'Canal builders, Windrush travellers, a worldwide diaspora, and today’s container ships.',
+  shore: 'Who gets to reach the sea? A live question about land, tourism and who owns the coast.'
+};
+const SPOT_R = { atlantic: 120, maroon: 105, first: 105, ground: 110, port: 110, shore: 110 };
+const ctx = { id: null, sticky: false, hideT: null, speaking: false, audio: null };
+function stopSpeech() {
+  if (window.speechSynthesis) speechSynthesis.cancel();
+  if (ctx.audio) { ctx.audio.pause(); ctx.audio = null; }
+  ctx.speaking = false;
+  const b = $('ctxListen'); if (b) { b.setAttribute('aria-pressed', 'false'); b.querySelector('span').textContent = 'Listen'; }
+}
+function speak(id) {
+  const p = PLACES.find(x => x.id === id), links = LINKS[id] || {};
+  stopSpeech();
+  const b = $('ctxListen');
+  const done = () => { ctx.speaking = false; b.setAttribute('aria-pressed', 'false'); b.querySelector('span').textContent = 'Listen'; };
+  if (links.audio) {
+    ctx.audio = new Audio(links.audio); ctx.audio.onended = done; ctx.audio.play();
+  } else if (window.speechSynthesis) {
+    const u = new SpeechSynthesisUtterance(p.title + '. ' + p.era + '. ' + TEASERS[id]);
+    const v = speechSynthesis.getVoices().find(v => /en[-_](GB|JM|TT|BB)/i.test(v.lang)) || speechSynthesis.getVoices().find(v => /^en/i.test(v.lang));
+    if (v) u.voice = v;
+    u.rate = 0.95; u.onend = done; u.onerror = done;
+    speechSynthesis.speak(u);
+  } else return;
+  ctx.speaking = true; b.setAttribute('aria-pressed', 'true'); b.querySelector('span').textContent = 'Stop';
+}
+function placeCtx(pin) {
+  const box = $('ctx'), r = pin.getBoundingClientRect(), w = box.offsetWidth, h = box.offsetHeight, m = 12;
+  let left = r.right + 10, top = r.top + r.height / 2 - 40;
+  if (left + w > innerWidth - m) left = r.left - w - 10;
+  if (left < m) { left = Math.min(Math.max(m, r.left + r.width / 2 - w / 2), innerWidth - w - m); top = r.bottom + 10; if (top + h > innerHeight - m) top = r.top - h - 10; }
+  top = Math.min(Math.max(m, top), Math.max(m, innerHeight - h - m));
+  box.style.left = left + 'px'; box.style.top = top + 'px';
+}
+function showCtx(id, sticky) {
+  const p = PLACES.find(x => x.id === id); if (!p) return;
+  clearTimeout(ctx.hideT);
+  if (ctx.id !== id) {
+    stopSpeech();
+    const L = LC[p.lens], i = PLACES.indexOf(p), links = LINKS[id] || {}, vid = links.video ? ytId(links.video) : null;
+    $('ctxNum').textContent = i + 1; $('ctxNum').style.cssText = 'background:' + L.bg + ';color:' + L.fg;
+    $('ctxTitle').textContent = p.title;
+    $('ctxMeta').textContent = p.era + ' · Lens: ' + L.name;
+    $('ctxText').textContent = TEASERS[id] || '';
+    $('ctxMedia').innerHTML = vid ? '<button class="ctx-thumb" id="ctxPlay" aria-label="Play the video here" style="background-image:url(https://i.ytimg.com/vi/' + vid + '/hqdefault.jpg)"><span><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg></span><em>Watch here</em></button>' : '';
+    $('ctxMedia').hidden = !vid;
+    const R = SPOT_R[id] || 95;
+    $('spot').style.background = 'radial-gradient(circle at ' + p.x + 'px ' + p.y + 'px, rgba(10,4,30,0) ' + R + 'px, rgba(10,4,30,.55) ' + (R + 45) + 'px)';
+    const ring = $('spotRing'); ring.style.left = (p.x - R) + 'px'; ring.style.top = (p.y - R) + 'px'; ring.style.width = ring.style.height = (2 * R) + 'px';
+    ctx.id = id;
+  }
+  ctx.sticky = ctx.sticky || !!sticky;
+  $('spot').classList.add('on'); $('spotRing').classList.add('on');
+  const box = $('ctx'); box.hidden = false;
+  const pin = document.querySelector('#pins [data-place="' + id + '"]'); if (pin) placeCtx(pin);
+}
+function hideCtx(force) {
+  if (ctx.sticky && !force) return;
+  clearTimeout(ctx.hideT);
+  stopSpeech();
+  $('ctx').hidden = true; $('ctxMedia').innerHTML = '';
+  $('spot').classList.remove('on'); $('spotRing').classList.remove('on');
+  ctx.id = null; ctx.sticky = false;
+}
+function hideSoon() { if (ctx.sticky) return; clearTimeout(ctx.hideT); ctx.hideT = setTimeout(() => hideCtx(), 280); }
 function go(id) { state.picked = id; state.visited.add(id); render(); }
 function step(d) { const i = PLACES.findIndex(p => p.id === state.picked); go(PLACES[(i + d + PLACES.length) % PLACES.length].id); }
 function setWalk(on) {
@@ -527,6 +649,27 @@ $('videoBtn').addEventListener('click', e => {
 });
 $('closeVid').onclick = closeVideo;
 $('vid').addEventListener('close', () => { $('vidFrame').innerHTML = ''; });
+$('pins').addEventListener('mouseover', e => { const p = e.target.closest('[data-place]'); if (p) showCtx(p.dataset.place); });
+$('pins').addEventListener('mouseout', e => { const p = e.target.closest('[data-place]'); if (p && !p.contains(e.relatedTarget)) hideSoon(); });
+$('pins').addEventListener('focusin', e => { const p = e.target.closest('[data-place]'); if (p) showCtx(p.dataset.place); });
+$('pins').addEventListener('focusout', e => { if (!$('ctx').contains(e.relatedTarget)) hideSoon(); });
+$('pins').addEventListener('click', e => { const p = e.target.closest('[data-place]'); if (p) setTimeout(() => { ctx.id = null; showCtx(p.dataset.place, true); }, 0); });
+$('ctx').addEventListener('mouseenter', () => clearTimeout(ctx.hideT));
+$('ctx').addEventListener('mouseleave', hideSoon);
+$('ctxClose').onclick = () => hideCtx(true);
+$('ctxListen').onclick = () => { if (ctx.speaking) stopSpeech(); else speak(ctx.id); };
+$('ctxMore').onclick = () => { const id = ctx.id; hideCtx(true); go(id); document.querySelector('.panels').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+$('ctxMedia').addEventListener('click', e => {
+  if (!e.target.closest('#ctxPlay')) return;
+  const id = ytId((LINKS[ctx.id] || {}).video); if (!id) return;
+  ctx.sticky = true; stopSpeech();
+  $('ctxMedia').innerHTML = '<div class="ctx-video"><iframe src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0" title="Video" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>';
+  const pin = document.querySelector('#pins [data-place="' + ctx.id + '"]'); if (pin) placeCtx(pin);
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('ctx').hidden) hideCtx(true); });
+window.addEventListener('scroll', () => { if (!$('ctx').hidden) { const pin = document.querySelector('#pins [data-place="' + ctx.id + '"]'); if (pin) placeCtx(pin); } }, { passive: true });
+$('wrap').addEventListener('scroll', () => { if (!$('ctx').hidden) hideCtx(true); }, { passive: true });
+if (window.speechSynthesis) speechSynthesis.getVoices();
 $('prev').onclick = () => step(-1);
 $('next').onclick = () => step(1);
 $('walk').onclick = () => setWalk(!state.timer);
