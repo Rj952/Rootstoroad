@@ -228,6 +228,7 @@ dialog.vid::backdrop{background:rgba(10,4,30,.8)}
 
   <section class="lensbar" aria-label="Five ways to read">
     <h2>Five ways to read</h2>
+    <button class="lens" id="lensListen" aria-pressed="false" style="background:#fff;color:var(--indigo)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"></path></svg><b><span>Listen</span></b></button>
     <div id="lenses" style="display:flex;flex-wrap:wrap;gap:8px"></div>
     <button class="walk" id="walk" aria-pressed="false">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" id="walkIcon"><path d="M8 5v14l11-7z"></path></svg>
@@ -572,22 +573,36 @@ function stopSpeech() {
   ctx.speaking = false;
   const b = $('ctxListen'); if (b) { b.setAttribute('aria-pressed', 'false'); b.querySelector('span').textContent = 'Listen'; }
 }
-function speak(id) {
-  const p = PLACES.find(x => x.id === id), links = LINKS[id] || {};
-  stopSpeech();
-  const b = $('ctxListen');
-  const done = () => { ctx.speaking = false; b.setAttribute('aria-pressed', 'false'); b.querySelector('span').textContent = 'Listen'; };
-  if (links.audio) {
-    ctx.audio = new Audio(links.audio); ctx.audio.onended = done; ctx.audio.play();
-  } else if (window.speechSynthesis) {
-    const u = new SpeechSynthesisUtterance(p.title + '. ' + p.era + '. ' + TEASERS[id]);
+const AUDIO = {
+  first: '01-first-people.mp3', atlantic: '02-the-atlantic.mp3', maroon: '03-maroon-hills.mp3', mill: '04-sugar-mill.mp3',
+  works: '05-boiling-house.mp3', great: '06-great-house.mp3', quarters: '07-the-quarters.mp3', grounds: '08-provision-grounds.mp3',
+  proclaim: '09-the-proclamation.mp3', village: '10-free-village.mp3', arrivals: '11-new-arrivals.mp3', market: '12-the-market.mp3',
+  reading: '13-reading-room.mp3', studio: '14-the-studio.mp3', ground: '15-under-the-ground.mp3', port: '16-the-port.mp3',
+  shore: '17-the-shoreline.mp3', fiveways: '18-five-ways-to-read.mp3'
+};
+function playVoice(src, fallbackText, btn) {
+  stopSpeech(); stopLens();
+  const label = btn.querySelector('span'), idle = label.textContent === 'Stop' ? 'Listen' : label.textContent;
+  const done = () => { ctx.speaking = false; btn.setAttribute('aria-pressed', 'false'); label.textContent = idle; };
+  const tts = () => {
+    if (!window.speechSynthesis) return done();
+    const u = new SpeechSynthesisUtterance(fallbackText);
     const v = speechSynthesis.getVoices().find(v => /en[-_](GB|JM|TT|BB)/i.test(v.lang)) || speechSynthesis.getVoices().find(v => /^en/i.test(v.lang));
     if (v) u.voice = v;
-    u.rate = 0.95; u.onend = done; u.onerror = done;
-    speechSynthesis.speak(u);
-  } else return;
-  ctx.speaking = true; b.setAttribute('aria-pressed', 'true'); b.querySelector('span').textContent = 'Stop';
+    u.rate = 0.95; u.onend = done; u.onerror = done; speechSynthesis.speak(u);
+  };
+  ctx.speaking = true; btn.setAttribute('aria-pressed', 'true'); label.textContent = 'Stop';
+  if (src) {
+    const a = new Audio(src); ctx.audio = a;
+    a.onended = done; a.onerror = () => { if (ctx.audio === a) { ctx.audio = null; tts(); } };
+    a.play().catch(() => { if (ctx.audio === a) { ctx.audio = null; tts(); } });
+  } else tts();
 }
+function speak(id) {
+  const p = PLACES.find(x => x.id === id), links = LINKS[id] || {};
+  playVoice(links.audio || AUDIO[id], p.title + '. ' + p.era + '. ' + TEASERS[id], $('ctxListen'));
+}
+function stopLens() { const b = $('lensListen'); if (b) { b.setAttribute('aria-pressed', 'false'); b.querySelector('span').textContent = 'Listen'; } }
 function placeCtx(pin) {
   const box = $('ctx'), r = pin.getBoundingClientRect(), w = box.offsetWidth, h = box.offsetHeight, m = 12;
   let left = r.right + 10, top = r.top + r.height / 2 - 40;
@@ -669,6 +684,7 @@ $('ctxMedia').addEventListener('click', e => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('ctx').hidden) hideCtx(true); });
 window.addEventListener('scroll', () => { if (!$('ctx').hidden) { const pin = document.querySelector('#pins [data-place="' + ctx.id + '"]'); if (pin) placeCtx(pin); } }, { passive: true });
 $('wrap').addEventListener('scroll', () => { if (!$('ctx').hidden) hideCtx(true); }, { passive: true });
+$('lensListen').onclick = () => { const b = $('lensListen'); if (b.getAttribute('aria-pressed') === 'true') { stopSpeech(); stopLens(); return; } playVoice(AUDIO.fiveways, 'Here are the five ways to read. Voice: whose voice is speaking? Power: who held the pen? Resistance: how did people fight and build? Memory: what was kept, and what was erased? Today: who benefits now?', b); };
 if (window.speechSynthesis) speechSynthesis.getVoices();
 $('prev').onclick = () => step(-1);
 $('next').onclick = () => step(1);
