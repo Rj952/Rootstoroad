@@ -50,6 +50,8 @@ button{font-family:inherit;color:inherit}
 @keyframes pulse{0%{transform:scale(1);opacity:.75}100%{transform:scale(2.1);opacity:0}}
 @keyframes rise{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
 .smoke{position:absolute;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle,rgba(245,245,240,.95),rgba(245,245,240,0));animation:smoke 4s ease-out infinite}
+@keyframes smokeBig{0%{transform:translate(0,0) scale(.5);opacity:0}12%{opacity:.75}60%{opacity:.45}100%{transform:translate(38px,-150px) scale(3.4);opacity:0}}
+.smoke.big{width:32px;height:32px;animation:smokeBig 5s ease-out infinite}
 .flag{position:absolute;background-image:var(--map);background-size:1440px 812px;transform-origin:0 50%;animation:wave 2.6s ease-in-out infinite}
 .sea{position:absolute;background-image:repeating-linear-gradient(100deg,rgba(255,255,255,0) 0,rgba(255,255,255,0) 26px,rgba(255,255,255,.22) 32px,rgba(255,255,255,0) 40px);mix-blend-mode:screen;animation:shimmer 7s linear infinite}
 .river{position:absolute;border-radius:10px;background-image:repeating-linear-gradient(180deg,rgba(255,255,255,0) 0,rgba(255,255,255,0) 10px,rgba(255,255,255,.45) 14px,rgba(255,255,255,0) 20px);mix-blend-mode:screen;animation:flow 1.4s linear infinite}
@@ -165,6 +167,8 @@ dialog.vid::backdrop{background:rgba(10,4,30,.8)}
 .ctx-thumb{position:relative;display:block;width:100%;aspect-ratio:16/9;border:none;border-radius:12px;background-color:#000;background-size:cover;background-position:center;cursor:pointer}
 .ctx-thumb span{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:29px;background:var(--hibiscus);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.4)}
 .ctx-thumb em{position:absolute;left:8px;bottom:8px;font-style:normal;font-size:13px;font-weight:700;background:rgba(10,4,30,.8);color:#fff;padding:3px 8px;border-radius:8px}
+.ctx-morevids{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:13px;font-weight:700}
+.ctx-mini{width:72px;aspect-ratio:16/9;border:2px solid var(--indigo);border-radius:8px;background-color:#000;background-size:cover;background-position:center;cursor:pointer}
 .ctx-video{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
 .ctx-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .ctx-actions{display:flex;gap:8px;padding:0 14px 14px}
@@ -207,9 +211,11 @@ dialog.vid::backdrop{background:rgba(10,4,30,.8)}
         <span class="spark" style="left:470px;top:782px;animation-delay:-1.7s"></span>
         <span class="spark" style="left:1180px;top:772px;animation-delay:-2.4s"></span>
         <span class="spark" style="left:1300px;top:562px;animation-delay:-1.2s"></span>
-        <span class="smoke" style="left:256px;top:282px"></span>
-        <span class="smoke" style="left:256px;top:282px;animation-delay:-1.3s"></span>
-        <span class="smoke" style="left:256px;top:282px;animation-delay:-2.6s"></span>
+        <span class="smoke big" style="left:251px;top:276px"></span>
+        <span class="smoke big" style="left:251px;top:276px;animation-delay:-1s"></span>
+        <span class="smoke big" style="left:251px;top:276px;animation-delay:-2s"></span>
+        <span class="smoke big" style="left:251px;top:276px;animation-delay:-3s"></span>
+        <span class="smoke big" style="left:251px;top:276px;animation-delay:-4s"></span>
         <span class="smoke" style="left:262px;top:104px;animation-delay:-.7s;animation-duration:5s"></span>
         <span class="smoke" style="left:262px;top:104px;animation-delay:-3.2s;animation-duration:5s"></span>
         <span class="fire" style="left:262px;top:122px"></span>
@@ -241,6 +247,7 @@ dialog.vid::backdrop{background:rgba(10,4,30,.8)}
     <span><b>Before 1492</b> Taíno, Kalinago and other First Peoples</span>
     <span><b>1492</b> Columbus arrives</span>
     <span><b>1655</b> English take Jamaica</span>
+    <span><b>1760</b> Tacky’s Revolt</span>
     <span><b>1763</b> Berbice Uprising</span>
     <span><b>1791–1804</b> Haitian Revolution</span>
     <span><b>1807</b> British slave trade banned</span>
@@ -383,10 +390,10 @@ const LINKS = {
   maroon:   { video: '', read: '' },
   mill:     { video: '', read: '' },
   works:    { video: 'https://www.youtube.com/watch?v=FknszjVbe0o', read: '' },
-  great:    { video: '', read: '' },
+  great:    { video: 'https://www.youtube.com/watch?v=f0NRbQdmk0g', read: '' },
   quarters: { video: 'https://www.youtube.com/watch?v=FknszjVbe0o', read: '' },
   grounds:  { video: 'https://www.youtube.com/watch?v=FknszjVbe0o', read: '' },
-  proclaim: { video: 'https://www.youtube.com/watch?v=-9xAspR_9Yw', read: '' },
+  proclaim: { video: 'https://www.youtube.com/watch?v=UmUVkD5V044', more: ['https://www.youtube.com/watch?v=-9xAspR_9Yw'], read: '' },
   village:  { video: '', read: '' },
   arrivals: { video: '', read: '' },
   market:   { video: '', read: '' },
@@ -394,7 +401,8 @@ const LINKS = {
   studio:   { video: '', read: '' },
   ground:   { video: '', read: '' },
   port:     { video: '', read: '' },
-  shore:    { video: '', read: '' }
+  shore:    { video: '', read: '' },
+  resist:   { video: 'https://www.youtube.com/watch?v=V673AjDCh28', read: '' }
 };
 
 const PLACES = [
@@ -462,7 +470,11 @@ const PLACES = [
       { id: 'shore', label: 'The Shoreline', x: 1080, y: 625, lens: 'today', era: 'Today', title: 'The Shoreline',
         story: 'Who can walk to the sea and the rivers? Access to beaches is tied to land, tourism and who owns the coast.',
         question: 'Ask the AI whether people can use their own beaches. Does it know the local debate?',
-        notes: { jm: 'In Jamaica, the right to reach beaches and rivers is a live public debate.' } }
+        notes: { jm: 'In Jamaica, the right to reach beaches and rivers is a live public debate.' } },
+      { id: 'resist', label: 'Resistance and Punishment', x: 395, y: 330, lens: 'resist', era: '1600s – 1830s', title: 'Resistance and Punishment',
+        story: 'Resistance took many forms: working slowly, breaking tools, feigning illness, running away, keeping African faith and names, and, when the moment came, rising up. Planters and colonial governments answered with slave codes, laws that controlled every part of enslaved people’s lives, and with punishments meant to frighten whole communities into obedience. After every major uprising the punishments were especially severe. Yet resistance never stopped, and it helped bring slavery to an end.',
+        question: 'Ask the AI how enslaved people resisted. Does it mention only the big rebellions, or also everyday resistance? Does it call punishment “discipline”?',
+        notes: { jm: 'Tacky’s Revolt of 1760 was one of the largest uprisings in the British Caribbean. Sam Sharpe was executed in 1832 after the rebellion he led.', bb: 'The Barbados Slave Code of 1661 became a model for laws across the region. Bussa led the great uprising of 1816.', gy: 'In 1823, thousands rose up in the Demerara rebellion.', ht: 'The uprising of 1791 grew into the only successful revolution of enslaved people in history.' } }
     ];
 
 const ISLANDS = [
@@ -563,7 +575,8 @@ const TEASERS = {
   studio: 'Reggae, calypso, soca, kompa and dancehall: Caribbean history told in music.',
   ground: 'Bauxite, oil and gas brought jobs and money, and also moved communities and changed the land.',
   port: 'Canal builders, Windrush travellers, a worldwide diaspora, and today’s container ships.',
-  shore: 'Who gets to reach the sea? A live question about land, tourism and who owns the coast.'
+  shore: 'Who gets to reach the sea? A live question about land, tourism and who owns the coast.',
+  resist: 'Enslaved people resisted every day, from working slowly to open revolt. The planters answered with harsh laws and punishment.'
 };
 const SPOT_R = { atlantic: 120, maroon: 105, first: 105, ground: 110, port: 110, shore: 110 };
 const ctx = { id: null, sticky: false, hideT: null, speaking: false, audio: null };
@@ -578,7 +591,7 @@ const AUDIO = {
   works: '05-boiling-house.mp3', great: '06-great-house.mp3', quarters: '07-the-quarters.mp3', grounds: '08-provision-grounds.mp3',
   proclaim: '09-the-proclamation.mp3', village: '10-free-village.mp3', arrivals: '11-new-arrivals.mp3', market: '12-the-market.mp3',
   reading: '13-reading-room.mp3', studio: '14-the-studio.mp3', ground: '15-under-the-ground.mp3', port: '16-the-port.mp3',
-  shore: '17-the-shoreline.mp3', fiveways: '18-five-ways-to-read.mp3'
+  shore: '17-the-shoreline.mp3', resist: '19-resistance-and-punishment.mp3', fiveways: '18-five-ways-to-read.mp3'
 };
 function playVoice(src, fallbackText, btn) {
   stopSpeech(); stopLens();
@@ -615,7 +628,8 @@ function showCtx(id, sticky) {
     $('ctxTitle').textContent = p.title;
     $('ctxMeta').textContent = p.era + ' · Lens: ' + L.name;
     $('ctxText').textContent = TEASERS[id] || '';
-    $('ctxMedia').innerHTML = vid ? '<button class="ctx-thumb" id="ctxPlay" aria-label="Play the video here" style="background-image:url(https://i.ytimg.com/vi/' + vid + '/hqdefault.jpg)"><span><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg></span><em>Watch here</em></button>' : '';
+    const more = (links.more || []).map(ytId).filter(Boolean);
+    $('ctxMedia').innerHTML = vid ? '<button class="ctx-thumb" data-vid="' + vid + '" aria-label="Play the video here" style="background-image:url(https://i.ytimg.com/vi/' + vid + '/hqdefault.jpg)"><span><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg></span><em>Watch here</em></button>' + (more.length ? '<div class="ctx-morevids"><span>More videos</span>' + more.map((m, k) => '<button class="ctx-mini" data-vid="' + m + '" aria-label="Play more video ' + (k + 1) + '" style="background-image:url(https://i.ytimg.com/vi/' + m + '/mqdefault.jpg)"></button>').join('') + '</div>' : '') : '';
     $('ctxMedia').hidden = !vid;
     const R = SPOT_R[id] || 95;
     $('spot').style.background = 'radial-gradient(circle at ' + p.x + 'px ' + p.y + 'px, rgba(10,4,30,0) ' + R + 'px, rgba(10,4,30,.55) ' + (R + 45) + 'px)';
@@ -669,8 +683,8 @@ $('ctxClose').onclick = () => hideCtx(true);
 $('ctxListen').onclick = () => { if (ctx.speaking) stopSpeech(); else speak(ctx.id); };
 $('ctxMore').onclick = () => { const id = ctx.id; hideCtx(true); go(id); document.querySelector('.panels').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
 $('ctxMedia').addEventListener('click', e => {
-  if (!e.target.closest('#ctxPlay')) return;
-  const id = ytId((LINKS[ctx.id] || {}).video); if (!id) return;
+  const t = e.target.closest('[data-vid]'); if (!t) return;
+  const id = t.dataset.vid;
   ctx.sticky = true; stopSpeech();
   $('ctxMedia').innerHTML = '<div class="ctx-video"><iframe src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0" title="Video" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>';
   const pin = document.querySelector('#pins [data-place="' + ctx.id + '"]'); if (pin) placeCtx(pin);
